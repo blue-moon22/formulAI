@@ -10,6 +10,7 @@ from langchain.agents import create_csv_agent
 from langchain.document_loaders import CSVLoader
 
 import time
+os.environ["OPENAI_API_KEY"] = "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"
 
 def addtodatabase(protocol,ingredients):
     #creates and adds to log database to log 
@@ -65,15 +66,19 @@ wiki = WikipediaAPIWrapper()
 
 # Show stuff on screen
 if st.button('Submit Formulation Request'):
+    st.spinner('Formulating...')
     csvdata = csvagent.run(prompt)
     ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata, selected_option=selected_option)
     wiki_research = wiki.run(prompt) 
     protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
-    
-    st.write('## Ingredients')
-    st.write(ingredients)
-    st.write('## Protocol')
-    st.write(protocol) 
+    st.balloons()
+    st.sidebar.write('## Ingredients')
+    st.sidebar.write(ingredients)
+        
+    with st.container():
+
+        st.write('## Protocol')
+        st.write(protocol) 
 
     addtodatabase(protocol,ingredients)
 
