@@ -10,6 +10,7 @@ from langchain.agents import create_csv_agent
 from langchain.document_loaders import CSVLoader
 
 import time
+os.environ["OPENAI_API_KEY"] = "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"
 
 def addtodatabase(protocol,ingredients,allergen):
     #creates and adds to log database to log 
@@ -57,7 +58,7 @@ protocol_template = PromptTemplate(
 allergen_template = PromptTemplate(
 
     input_variables = ['ingredients'],
-    template = "Write a list of potential allergens present in {ingredients}."
+    template = "Write a list of potential allergens present in {ingredients}. keep the answer very consise."
 )
 
 # Memory 
@@ -77,23 +78,23 @@ wiki = WikipediaAPIWrapper()
 
 # Show stuff on screen
 if st.button('Submit Formulation Request'):
-    st.spinner('Formulating...')
-    csvdata = csvagent.run(prompt)
-    ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata, selected_option=selected_option)
-    wiki_research = wiki.run(prompt) 
-    protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
-    allergen = allergen_chain.run(ingredients=ingredients)
+    with st.spinner('Formulating...'):
+        csvdata = csvagent.run(prompt)
+        ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata, selected_option=selected_option)
+        wiki_research = wiki.run(prompt) 
+        protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
+        allergen = allergen_chain.run(ingredients=ingredients)
 
     st.balloons()
     st.sidebar.write('## Ingredients')
     st.sidebar.write(ingredients)
-        
+    st.sidebar.write('## Potential Allergens')
+    st.sidebar.write(allergen)    
     with st.container():
 
         st.write('## Protocol')
         st.write(protocol)
-        st.write('## Allergens')
-        st.write(allergen)
+        
 
         st.write('## Extra Information')
         with st.expander('Ingredients History'): 
