@@ -77,33 +77,38 @@ wiki = WikipediaAPIWrapper()
 
 # Show stuff on screen
 if st.button('Submit Formulation Request'):
+    st.spinner('Formulating...')
     csvdata = csvagent.run(prompt)
     ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata, selected_option=selected_option)
     wiki_research = wiki.run(prompt) 
     protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
     allergen = allergen_chain.run(ingredients=ingredients)
-    
-    st.write('## Ingredients')
-    st.write(ingredients)
-    st.write('## Protocol')
-    st.write(protocol)
-    st.write('## Allergens')
-    st.write(allergen)
+
+    st.balloons()
+    st.sidebar.write('## Ingredients')
+    st.sidebar.write(ingredients)
+        
+    with st.container():
+
+        st.write('## Protocol')
+        st.write(protocol)
+        st.write('## Allergens')
+        st.write(allergen)
+
+        st.write('## Extra Information')
+        with st.expander('Ingredients History'): 
+            st.info(ingredients_memory.buffer)
+
+        with st.expander('Protocol History'): 
+            st.info(protocol_memory.buffer)
+
+        with st.expander('Wikipedia Research'): 
+            st.info(wiki_research)
 
     addtodatabase(protocol,ingredients,allergen)
 
-    st.write('## Extra Information')
-    with st.expander('Ingredients History'): 
-        st.info(ingredients_memory.buffer)
+    st.write('### Feedback')
+    rating = st.number_input('Enter your rating for the supplied formulation')
 
-    with st.expander('Protocol History'): 
-        st.info(protocol_memory.buffer)
-
-    with st.expander('Wikipedia Research'): 
-        st.info(wiki_research)
-
-st.write('### Feedback')
-rating = st.number_input('Enter your rating for the supplied formulation')
-
-if st.button('Submit Rating'):
-    addtodatabaserating(rating)
+    if st.button('Submit Rating'):
+        addtodatabaserating(rating)
