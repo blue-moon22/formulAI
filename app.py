@@ -12,13 +12,16 @@ from langchain.document_loaders import CSVLoader
 import time
 ***REMOVED***
 
-def addtodatabase(protocol,ingredients):
+def addtodatabase(protocol,ingredients,allergen):
     #creates and adds to log database to log 
     #For ! Rating ! Time #
 
     logfile = open('log.txt','a')
     currenttime=time.time()
-    logstring = protocol + "," + ingredients  + "," + str(currenttime) + ","
+    title = "\n" + str(currenttime) + "\n"
+
+    logfile.write(title)
+    logstring = protocol + "," + ingredients  + ","  + allergen + "," + str(currenttime) + ","
     logfile.write(logstring)
     logfile.close()
 
@@ -30,6 +33,7 @@ def addtodatabaserating(rating):
     logstring = str(rating)  + ",\n"
     logfile.write(logstring)
     logfile.close()
+
 
 # App framework
 st.title("🪄🧪 FormulAI")
@@ -51,6 +55,12 @@ protocol_template = PromptTemplate(
     template = "Write a protocol for putting together the {ingredients} while leveraging this wikipedia reserch:{wikipedia_research}."
 )
 
+allergen_template = PromptTemplate(
+
+    input_variables = ['ingredients'],
+    template = "Write a list of potential allergens present in {ingredients}."
+)
+
 # Memory 
 ingredients_memory = ConversationBufferMemory(input_key='chemical', memory_key='chat_history')
 protocol_memory = ConversationBufferMemory(input_key='ingredients', memory_key='chat_history')
@@ -60,6 +70,8 @@ csv_memory = ConversationBufferMemory(input_key='csvdata', memory_key='chat_hist
 llm = OpenAI(model_name="gpt-3.5-turbo")
 ingredients_chain = LLMChain(llm=llm, prompt=ingredients_template, verbose=True, output_key="ingredients", memory=ingredients_memory)
 protocol_chain = LLMChain(llm=llm, prompt=protocol_template, verbose=True, output_key="protocol", memory=protocol_memory)
+allergen_chain = LLMChain(llm=llm, prompt=allergen_template, verbose=True, output_key="allergen", memory=protocol_memory)
+
 csvagent = create_csv_agent(OpenAI(temperature=0.2),'skincare_products_clean.csv',verbose=True, output_key="csvdata", memory=csv_memory)
 
 wiki = WikipediaAPIWrapper()
@@ -71,6 +83,8 @@ if st.button('Submit Formulation Request'):
     ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata, selected_option=selected_option)
     wiki_research = wiki.run(prompt) 
     protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
+    allergen = allergen_chain.run(ingredients=ingredients)
+
     st.balloons()
     st.sidebar.write('## Ingredients')
     st.sidebar.write(ingredients)
@@ -78,22 +92,24 @@ if st.button('Submit Formulation Request'):
     with st.container():
 
         st.write('## Protocol')
-        st.write(protocol) 
+        st.write(protocol)
+        st.write('## Allergens')
+        st.write(allergen)
 
-    addtodatabase(protocol,ingredients)
+        st.write('## Extra Information')
+        with st.expander('Ingredients History'): 
+            st.info(ingredients_memory.buffer)
 
-    st.write('## Extra Information')
-    with st.expander('Ingredients History'): 
-        st.info(ingredients_memory.buffer)
+        with st.expander('Protocol History'): 
+            st.info(protocol_memory.buffer)
 
-    with st.expander('Protocol History'): 
-        st.info(protocol_memory.buffer)
+        with st.expander('Wikipedia Research'): 
+            st.info(wiki_research)
 
-    with st.expander('Wikipedia Research'): 
-        st.info(wiki_research)
+    addtodatabase(protocol,ingredients,allergen)
 
-st.write('### Feedback')
-rating = st.number_input('Enter your rating for the supplied formulation')
+    st.write('### Feedback')
+    rating = st.number_input('Enter your rating for the supplied formulation')
 
-if st.button('Submit Rating'):
-    addtodatabaserating(rating)
+    if st.button('Submit Rating'):
+        addtodatabaserating(rating)
