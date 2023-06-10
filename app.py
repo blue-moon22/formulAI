@@ -9,7 +9,26 @@ from langchain.chat_models import ChatOpenAI
 from langchain.agents import create_csv_agent
 from langchain.document_loaders import CSVLoader
 
+import time
 
+def addtodatabase(protocol,ingredients):
+    #creates and adds to log database to log 
+    #For ! Rating ! Time #
+
+    logfile = open('log.txt','a')
+    currenttime=time.time()
+    logstring = protocol + "," + ingredients  + "," + str(currenttime) + ","
+    logfile.write(logstring)
+    logfile.close()
+
+def addtodatabaserating(rating):
+    #creates and adds to log database to log 
+    #For ! Rating ! Time #
+
+    logfile = open('log.txt','a')
+    logstring = str(rating)  + ",\n"
+    logfile.write(logstring)
+    logfile.close()
 
 # App framework
 st.title("🪄🧪 FormulAI")
@@ -40,7 +59,7 @@ csvagent = create_csv_agent(OpenAI(temperature=0.2),'skincare_products_clean.csv
 wiki = WikipediaAPIWrapper()
 
 # Show stuff on screen
-if prompt:
+if st.button('Submit Formulation Request'):
     csvdata = csvagent.run(prompt)
     ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata)
     wiki_research = wiki.run(prompt) 
@@ -48,6 +67,8 @@ if prompt:
     
     st.write(ingredients)
     st.write(protocol) 
+
+    addtodatabase(protocol,ingredients)
 
     with st.expander('Ingredients History'): 
         st.info(ingredients_memory.buffer)
@@ -58,7 +79,7 @@ if prompt:
     with st.expander('Wikipedia Research'): 
         st.info(wiki_research)
 
-        
-""" 
-    with st.expander('CSV History'): 
-        st.info(csv_memory.buffer) """
+rating = st.number_input('Enter your rating for the supplied formulation')
+
+if st.button('Submit Rating'):
+    addtodatabaserating(rating)
