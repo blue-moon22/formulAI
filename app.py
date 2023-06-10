@@ -11,8 +11,6 @@ from langchain.document_loaders import CSVLoader
 
 import time
 
-***REMOVED***
-
 def addtodatabase(protocol,ingredients,allergen):
     #creates and adds to log database to log 
     #For ! Rating ! Time #
@@ -35,14 +33,20 @@ def addtodatabaserating(rating):
     logfile.write(logstring)
     logfile.close()
 
+
 # App framework
 st.title("🪄🧪 FormulAI")
 prompt = st.text_input("What would you like to formulate?")
 
+# Adding options:
+formula_options = ['Cream', 'Spray', 'Any']
+selected_option = st.selectbox('Select an option:', formula_options)
+st.write('You selected:', selected_option)
+
 # Prompt templates
 ingredients_template = PromptTemplate(
-    input_variables = ['chemical','csvdata'],
-    template = "Write me the ingredients for a formulation that includes {chemical} while leveraging current formulations found in: {csvdata}, if the chemical is not directly in csvdata suggest a similar chemical. do not mention dataset in response. The function of the ingredients should be in the format: 'ingredient: (function) for example: 'Glycerin: (Humectant)"
+    input_variables = ['chemical','csvdata', 'selected_option'],
+    template = "Write me the ingredients for a {selected_option} formulation that includes {chemical} while leveraging current formulations found in: {csvdata}, if the chemical is not directly in csvdata suggest a similar chemical. Do not mention dataset in response. The function of the ingredients should be in the format: 'ingredient: (function)', for example: 'Glycerin: (Humectant) in a bullet point format"
 )
 
 protocol_template = PromptTemplate(
@@ -74,16 +78,21 @@ wiki = WikipediaAPIWrapper()
 # Show stuff on screen
 if st.button('Submit Formulation Request'):
     csvdata = csvagent.run(prompt)
-    ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata)
+    ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata, selected_option=selected_option)
     wiki_research = wiki.run(prompt) 
     protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
     allergen = allergen_chain.run(ingredients=ingredients)
+    
+    st.write('## Ingredients')
     st.write(ingredients)
-    st.write(protocol) 
+    st.write('## Protocol')
+    st.write(protocol)
+    st.write('## Allergens')
     st.write(allergen)
 
     addtodatabase(protocol,ingredients,allergen)
 
+    st.write('## Extra Information')
     with st.expander('Ingredients History'): 
         st.info(ingredients_memory.buffer)
 
@@ -93,6 +102,7 @@ if st.button('Submit Formulation Request'):
     with st.expander('Wikipedia Research'): 
         st.info(wiki_research)
 
+st.write('### Feedback')
 rating = st.number_input('Enter your rating for the supplied formulation')
 
 if st.button('Submit Rating'):
