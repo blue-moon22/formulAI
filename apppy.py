@@ -19,6 +19,9 @@ def addtodatabase(protocol,ingredients,allergen):
 
     logfile = open('log.txt','a')
     currenttime=time.time()
+    title = "\n" + str(currenttime) + "\n"
+
+    logfile.write(title)
     logstring = protocol + "," + ingredients  + ","  + allergen + "," + str(currenttime) + ","
     logfile.write(logstring)
     logfile.close()
@@ -49,8 +52,8 @@ protocol_template = PromptTemplate(
 
 allergen_template = PromptTemplate(
 
-    input_variables = ['ingredients', 'wikipedia_research'],
-    template = "Write a list of potential allergens present in {ingredients} while leveraging this wikipedia reserch:{wikipedia_research}."
+    input_variables = ['ingredients'],
+    template = "Write a list of potential allergens present in {ingredients}."
 )
 
 # Memory 
@@ -74,7 +77,7 @@ if st.button('Submit Formulation Request'):
     ingredients = ingredients_chain.run(chemical=prompt, csvdata=csvdata)
     wiki_research = wiki.run(prompt) 
     protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
-    allergen = allergen_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
+    allergen = allergen_chain.run(ingredients=ingredients)
     st.write(ingredients)
     st.write(protocol) 
     st.write(allergen)
