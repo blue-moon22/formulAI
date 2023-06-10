@@ -10,7 +10,7 @@ from langchain.agents import create_csv_agent
 from langchain.document_loaders import CSVLoader
 
 import time
-os.environ["OPENAI_API_KEY"] = "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"
+os.environ["OPENAI_API_KEY"] = ""
 
 def addtodatabase(protocol,ingredients):
     #creates and adds to log database to log 
