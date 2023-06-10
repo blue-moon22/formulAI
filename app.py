@@ -34,10 +34,15 @@ def addtodatabaserating(rating):
 st.title("🪄🧪 FormulAI")
 prompt = st.text_input("What would you like to formulate?")
 
+# Adding options:
+options = ['Cream', 'Spray']
+selected_option = st.selectbox('Select an option:', options)
+st.write('You selected:', selected_option)
+
 # Prompt templates
 ingredients_template = PromptTemplate(
     input_variables = ['chemical','csvdata'],
-    template = "Write me the ingredients for a formulation that includes {chemical} while leveraging current formulations found in: {csvdata}, if the chemical is not directly in csvdata suggest a similar chemical. do not mention dataset in response. The function of the ingredients should be in the format: 'ingredient: (function) for example: 'Glycerin: (Humectant)"
+    template = f"Write me the ingredients for a {selected_option} "+ "formulation that includes {chemical} while leveraging current formulations found in: {csvdata}, if the chemical is not directly in csvdata suggest a similar chemical. do not mention dataset in response. The function of the ingredients should be in the format: 'ingredient: (function) for example: 'Glycerin: (Humectant)"
 )
 
 protocol_template = PromptTemplate(
@@ -65,11 +70,14 @@ if st.button('Submit Formulation Request'):
     wiki_research = wiki.run(prompt) 
     protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
     
+    st.write('## Ingredients')
     st.write(ingredients)
+    st.write('## Protocol')
     st.write(protocol) 
 
     addtodatabase(protocol,ingredients)
 
+    st.write('## Extra Information')
     with st.expander('Ingredients History'): 
         st.info(ingredients_memory.buffer)
 
@@ -79,6 +87,7 @@ if st.button('Submit Formulation Request'):
     with st.expander('Wikipedia Research'): 
         st.info(wiki_research)
 
+st.write('### Feedback')
 rating = st.number_input('Enter your rating for the supplied formulation')
 
 if st.button('Submit Rating'):
