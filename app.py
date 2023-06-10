@@ -5,6 +5,26 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 from langchain.memory import ConversationBufferMemory
 from langchain.utilities import WikipediaAPIWrapper
+import time
+
+def addtodatabase(protocol,ingredients):
+    #creates and adds to log database to log 
+    #For ! Rating ! Time #
+
+    logfile = open('log.txt','a')
+    currenttime=time.time()
+    logstring = protocol + "," + ingredients  + "," + str(currenttime) + ","
+    logfile.write(logstring)
+    logfile.close()
+
+def addtodatabaserating(rating):
+    #creates and adds to log database to log 
+    #For ! Rating ! Time #
+
+    logfile = open('log.txt','a')
+    logstring = str(rating)  + ",\n"
+    logfile.write(logstring)
+    logfile.close()
 
 # App framework
 st.title("🪄🧪 FormulAI")
@@ -33,13 +53,15 @@ protocol_chain = LLMChain(llm=llm, prompt=protocol_template, verbose=True, outpu
 wiki = WikipediaAPIWrapper()
 
 # Show stuff on screen
-if prompt:
+if st.button('Submit Formulation Request'):
     ingredients = ingredients_chain.run(prompt)
     wiki_research = wiki.run(prompt) 
     protocol = protocol_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
 
     st.write(ingredients)
     st.write(protocol) 
+
+    addtodatabase(protocol,ingredients)
 
     with st.expander('Ingredients History'): 
         st.info(ingredients_memory.buffer)
@@ -49,3 +71,14 @@ if prompt:
 
     with st.expander('Wikipedia Research'): 
         st.info(wiki_research)
+
+
+
+rating = st.number_input('Enter your rating for the supplied formulation')
+
+
+if st.button('Submit Rating'):
+    addtodatabaserating(rating)
+
+
+
