@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain, SequentialChain
 from langchain.memory import ConversationBufferMemory
@@ -26,7 +26,7 @@ ingredients_memory = ConversationBufferMemory(input_key='chemical', memory_key='
 protocol_memory = ConversationBufferMemory(input_key='ingredients', memory_key='chat_history')
 
 # LLMs
-llm = OpenAI(model_name="gpt-3.5-turbo")
+llm = ChatOpenAI(model_name="gpt-3.5-turbo")
 ingredients_chain = LLMChain(llm=llm, prompt=ingredients_template, verbose=True, output_key="ingredients", memory=ingredients_memory)
 protocol_chain = LLMChain(llm=llm, prompt=protocol_template, verbose=True, output_key="protocol", memory=protocol_memory)
 
