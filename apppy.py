@@ -13,14 +13,13 @@ import time
 
 os.environ['OPENAI_API_KEY'] = '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'
 
-
-def addtodatabase(protocol,ingredients):
+def addtodatabase(protocol,ingredients,allergen):
     #creates and adds to log database to log 
     #For ! Rating ! Time #
 
     logfile = open('log.txt','a')
     currenttime=time.time()
-    logstring = protocol + "," + ingredients  + "," + str(currenttime) + ","
+    logstring = protocol + "," + ingredients  + ","  + allergen + "," + str(currenttime) + ","
     logfile.write(logstring)
     logfile.close()
 
@@ -63,7 +62,7 @@ csv_memory = ConversationBufferMemory(input_key='csvdata', memory_key='chat_hist
 llm = OpenAI(model_name="gpt-3.5-turbo")
 ingredients_chain = LLMChain(llm=llm, prompt=ingredients_template, verbose=True, output_key="ingredients", memory=ingredients_memory)
 protocol_chain = LLMChain(llm=llm, prompt=protocol_template, verbose=True, output_key="protocol", memory=protocol_memory)
-allergen_chain = LLMChain(llm=llm, prompt=allergen_template, verbose=True, output_key="allergen", memory=ingredients_memory_memory)
+allergen_chain = LLMChain(llm=llm, prompt=allergen_template, verbose=True, output_key="allergen", memory=protocol_memory)
 
 csvagent = create_csv_agent(OpenAI(temperature=0.2),'skincare_products_clean.csv',verbose=True, output_key="csvdata", memory=csv_memory)
 
@@ -78,9 +77,9 @@ if st.button('Submit Formulation Request'):
     allergen = allergen_chain.run(ingredients=ingredients, wikipedia_research=wiki_research)
     st.write(ingredients)
     st.write(protocol) 
-    st.write(allergens)
+    st.write(allergen)
 
-    addtodatabase(protocol,ingredients)
+    addtodatabase(protocol,ingredients,allergen)
 
     with st.expander('Ingredients History'): 
         st.info(ingredients_memory.buffer)
