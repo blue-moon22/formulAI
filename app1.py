@@ -14,14 +14,14 @@ rating = st.number_input('Enter your rating for the supplied formulation')
 
 
 
-def addtodatabase(formula,rating):
+def addtodatabase(protocol,ingredients,rating):
     #creates and adds to log database to log 
     #For ! Rating ! Time #
 
 
     logfile = file.open('log.csv','r')
     currenttime=time.time()
-    logstring = formula + "," + process + "," + rating  + "," + currenttime + ",\n"
+    logstring = protocol + "," + ingredients + "," + rating  + "," + currenttime + ",\n"
     logfile.append(logstring)
     logfile.close()
 
@@ -76,6 +76,6 @@ if prompt:
         st.info(wiki_research)
 
 if rating:
-    addtodatabase(formula,ingredients,rating)
+    addtodatabase(protcol,ingredients,rating)
 
 
